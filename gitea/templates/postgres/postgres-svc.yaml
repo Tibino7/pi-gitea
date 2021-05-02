@@ -1,0 +1,11 @@
+kind: Service 
+apiVersion: v1 
+metadata:
+  name: {{ template "postgres.fullname" . }}
+spec: 
+  type: ClusterIP
+  selector:
+    app: {{ template "postgres.fullname" . }}
+  ports:
+    - port: 5432 
+      targetPort: 5432

@@ -1,0 +1,38 @@
+{{- if semverCompare "<1.14-0" .Capabilities.KubeVersion.GitVersion }}
+apiVersion: extensions/v1beta1
+{{- else if semverCompare "<1.19-0" .Capabilities.KubeVersion.GitVersion }}
+apiVersion: networking.k8s.io/v1beta1
+{{- else }}
+apiVersion: networking.k8s.io/v1
+{{- end }}
+kind: Ingress
+metadata:
+  name: {{ template "ssh-ingress.name" . }}
+  annotations:
+{{ toYaml .Values.ingress.annotations | indent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  rules:
+  - host: {{ .Values.ingress.hosts.ssh }}
+    http:
+      paths:
+{{- if semverCompare "<1.19-0" .Capabilities.KubeVersion.GitVersion }}
+      - path: "/"
+        backend:
+          serviceName:  {{ template "fullname" . }}-ssh
+          servicePort: {{ .Values.service.ssh.port }}
+{{- else }}
+      - path: "/" 
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: {{ template "fullname" . }}-ssh
+            port:
+              number: {{ .Values.service.ssh.port }}     
+{{- end }}
+{{- if .Values.ingress.tls.enabled }}
+  tls:
+  - hosts:
+    - "{{ .Values.ingress.hosts.ssh }}"
+    secretName: {{ .Values.ingress.tls.secret.sshSecretName }}
+{{- end }}

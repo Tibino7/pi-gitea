@@ -1,0 +1,11 @@
+kind: Service 
+apiVersion: v1 
+metadata:
+  name: {{ template "memcached.fullname" . }}
+spec: 
+  type: ClusterIP
+  selector:
+    app: {{ template "memcached.fullname" . }}
+  ports:
+    - port: {{ .Values.memcached.servicePort }}
+      targetPort: {{ .Values.memcached.servicePort }}
